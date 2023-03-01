@@ -1,0 +1,8 @@
+opencv_python == 4.6.0.66
+numpy == 1.16.6
+python_speech_features == 0.6
+resampy == 0.2.2
+scipy == 1.5.4
+tensorflow == 1.15.2
+torch == 1.7.1+cu101
+torchvision == 0.8.2+cu101
