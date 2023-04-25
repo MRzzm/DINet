@@ -2,6 +2,10 @@
 ![在这里插入图片描述](https://img-blog.csdnimg.cn/178c6b3ec0074af7a2dcc9ef26450e75.png)
 [Paper](https://fuxivirtualhuman.github.io/pdf/AAAI2023_FaceDubbing.pdf) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;     [demo video](https://www.youtube.com/watch?v=UU344T-9h7M&t=6s)  &nbsp;&nbsp;&nbsp;&nbsp; Supplementary materials
 
+[![Open In Colab][colab-badge]][colab-notebook]
+[colab-notebook]: <https://colab.research.google.com/drive/1cxBye8XTGoqMessl9XMh9dCwP-iJ1-cF>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
 ## Inference
 ##### Download resources (asserts.zip) in [Google drive](https://drive.google.com/drive/folders/1rPtOo9Uuhc59YfFVv4gBmkh0_oG0nCQb?usp=share_link). unzip and put dir in ./.
 +  Inference with example videos.  Run 
