@@ -61,7 +61,7 @@ class DINetDataset(Dataset):
             reference_frame_path_list = self.data_dic[video_name]['clip_data_list'][reference_anchor]['frame_path_list']
             reference_random_index = random.sample(range(9), 1)[0]
             ## modify the path
-            reference_frame_path = os.path.join(reference_frame_path_list[reference_random_index].replace('\\','/').split('/')) # fix the path problem
+            reference_frame_path = os.path.join(*reference_frame_path_list[reference_random_index].replace('\\','/').split('/')) # fix the path problem
             if not os.path.exists(reference_frame_path):
                 raise FileNotFoundError(f"{reference_frame_path} does not exsit")
             reference_frame_data = cv2.imread(reference_frame_path)
