@@ -43,7 +43,7 @@ class DINetDataset(Dataset):
         reference_clip_list = []
         for source_frame_index in range(2, 2 + 5):
             ## load source clip
-            source_image_path = os.path.join(*source_image_path_list[source_frame_index].replace('\\', '/').slipt('/')) # fix path error
+            source_image_path = os.path.join(*source_image_path_list[source_frame_index].replace('\\', '/').split('/')) # fix path error
             if not os.path.exists(source_image_path):
                 raise FileNotFoundError(f'{source_image_path} does not exist')
             source_image_data = cv2.imread(source_image_path)
