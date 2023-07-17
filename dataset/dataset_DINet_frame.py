@@ -18,7 +18,7 @@ def get_data(json_name,augment_num):
             data_dic_name_list.append(video_name)
     random.shuffle(data_dic_name_list)
     print('finish loading')
-    return data_dic_name_list,data_dic
+    return data_dic_name_list, data_dic
 
 
 class DINetDataset(Dataset):
@@ -41,12 +41,12 @@ class DINetDataset(Dataset):
         source_image_path_list = self.data_dic[video_name]['clip_data_list'][source_anchor]['frame_path_list']
         source_random_index = random.sample(range(2, 7), 1)[0]
         ## modify the path
-        source_image_path = os.path.join(source_image_path_list[source_random_index].replace('\\','/').split('/')) # fix the path problem
+        source_image_path = os.path.join(*source_image_path_list[source_random_index].replace('\\','/').split('/')) # fix the path problem
         if not os.path.exists(source_image_path):
-            raise FileNotFoundError(f"{source_image_path} does not")
+            raise FileNotFoundError(f"{source_image_path} does not exist")
         source_image_data = cv2.imread(source_image_path_list[source_random_index])[:, :, ::-1]
         if source_image_data is None:
-            raise FileNotFoundError(f"{source_image_path} does not")
+            raise IOError(f"Failed to open {source_image_path}")
         source_image_data = source_image_data[:, :, ::-1]
         source_image_data = cv2.resize(source_image_data, (self.img_w, self.img_h))/ 255.0
         source_image_mask = source_image_data.copy()
