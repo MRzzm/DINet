@@ -44,7 +44,7 @@ class DINetDataset(Dataset):
         source_image_path = os.path.join(*source_image_path_list[source_random_index].replace('\\','/').split('/')) # fix the path problem
         if not os.path.exists(source_image_path):
             raise FileNotFoundError(f"{source_image_path} does not exist")
-        source_image_data = cv2.imread(source_image_path_list[source_random_index])[:, :, ::-1]
+        source_image_data = cv2.imread(source_image_path)
         if source_image_data is None:
             raise IOError(f"Failed to open {source_image_path}")
         source_image_data = source_image_data[:, :, ::-1]
