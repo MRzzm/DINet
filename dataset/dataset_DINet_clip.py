@@ -75,7 +75,7 @@ class DINetDataset(Dataset):
                 reference_frame_path = cv2.imread(reference_frame_path)
                 if reference_frame_data is None:
                     raise IOError(f'Failed to open{reference_frame_path}')
-                reference_frame_data = cv2.imread(reference_frame_path)[:, :, ::-1]
+                reference_frame_data = reference_frame_data[:, :, ::-1]
                 reference_frame_data = cv2.resize(reference_frame_data, (self.img_w, self.img_h)) / 255.0
                 reference_frame_list.append(reference_frame_data)
             reference_clip_list.append(np.concatenate(reference_frame_list, 2))
