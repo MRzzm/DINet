@@ -72,7 +72,7 @@ class DINetDataset(Dataset):
                 reference_frame_path = os.path.join(*reference_frame_path_list[reference_random_index].replace('\\', '/').split('/')) # fix path error
                 if not os.path.exists(reference_frame_path):
                     raise FileNotFoundError(f'{reference_frame_path} does not exist')
-                reference_frame_path = cv2.imread(reference_frame_path)
+                reference_frame_data = cv2.imread(reference_frame_path)
                 if reference_frame_data is None:
                     raise IOError(f'Failed to open{reference_frame_path}')
                 reference_frame_data = reference_frame_data[:, :, ::-1]
