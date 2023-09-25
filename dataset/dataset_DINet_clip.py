@@ -6,6 +6,8 @@ import cv2
 
 from torch.utils.data import Dataset
 
+from dataset.augmenter import Augmenter
+
 
 def get_data(json_name,augment_num):
     print('start loading data')
@@ -36,6 +38,10 @@ class DINetDataset(Dataset):
         video_clip_num = len(self.data_dic[video_name]['clip_data_list'])
         source_anchor = random.sample(range(video_clip_num), 1)[0]
         source_image_path_list = self.data_dic[video_name]['clip_data_list'][source_anchor]['frame_path_list']
+
+        # initialize random state for augmentation
+        augmenter = Augmenter()
+
         source_clip_list = []
         source_clip_mask_list = []
         deep_speech_list = []
@@ -43,7 +49,9 @@ class DINetDataset(Dataset):
         for source_frame_index in range(2, 2 + 5):
             ## load source clip
             source_image_data = cv2.imread(source_image_path_list[source_frame_index])[:, :, ::-1]
-            source_image_data = cv2.resize(source_image_data, (self.img_w, self.img_h)) / 255.0
+            source_image_data = cv2.resize(source_image_data, (self.img_w, self.img_h)).astype(np.float32) / 255.0  # [H, W, 3]
+            source_image_data = augmenter.transform_image(source_image_data)
+
             source_clip_list.append(source_image_data)
             source_image_mask = source_image_data.copy()
             source_image_mask[self.radius:self.radius + self.mouth_region_size,
@@ -64,14 +72,15 @@ class DINetDataset(Dataset):
                 reference_random_index = random.sample(range(9), 1)[0]
                 reference_frame_path = reference_frame_path_list[reference_random_index]
                 reference_frame_data = cv2.imread(reference_frame_path)[:, :, ::-1]
-                reference_frame_data = cv2.resize(reference_frame_data, (self.img_w, self.img_h)) / 255.0
+                reference_frame_data = cv2.resize(reference_frame_data, (self.img_w, self.img_h)).astype(np.float32) / 255.0
+                reference_frame_data = augmenter.transform_image(reference_frame_data)
                 reference_frame_list.append(reference_frame_data)
             reference_clip_list.append(np.concatenate(reference_frame_list, 2))
 
-        source_clip = np.stack(source_clip_list, 0)
+        source_clip = np.stack(source_clip_list, 0)  # [5, H, W, 3]
         source_clip_mask = np.stack(source_clip_mask_list, 0)
         deep_speech_clip = np.stack(deep_speech_list, 0)
-        reference_clip = np.stack(reference_clip_list, 0)
+        reference_clip = np.stack(reference_clip_list, 0)  # [5, H, W, 5*3]
         deep_speech_full = np.array(self.data_dic[video_name]['clip_data_list'][source_anchor]['deep_speech_list'])
 
         # # display data
@@ -100,10 +109,10 @@ class DINetDataset(Dataset):
 
 
         # # 2 tensor
-        source_clip = torch.from_numpy(source_clip).float().permute(0, 3, 1, 2)
-        source_clip_mask = torch.from_numpy(source_clip_mask).float().permute(0, 3, 1, 2)
-        reference_clip = torch.from_numpy(reference_clip).float().permute(0, 3, 1, 2)
-        deep_speech_clip = torch.from_numpy(deep_speech_clip).float().permute(0, 2, 1)
+        source_clip = torch.from_numpy(source_clip).float().permute(0, 3, 1, 2)  # [5, 3, H, W]
+        source_clip_mask = torch.from_numpy(source_clip_mask).float().permute(0, 3, 1, 2)  # [5, 3, H, W]
+        reference_clip = torch.from_numpy(reference_clip).float().permute(0, 3, 1, 2)  # [5, 5*3, H, W]
+        deep_speech_clip = torch.from_numpy(deep_speech_clip).float().permute(0, 2, 1)  # [5, 29, 5]
         deep_speech_full = torch.from_numpy(deep_speech_full).permute(1, 0)
         return source_clip,source_clip_mask, reference_clip,deep_speech_clip,deep_speech_full
 

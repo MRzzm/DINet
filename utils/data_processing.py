@@ -5,19 +5,49 @@ import random
 
 def load_landmark_openface(csv_path):
     '''
-    load openface landmark from .csv file
+    load openface landmark from .csv file. Uses column names to find the correct columns.
     '''
     with open(csv_path, 'r') as f:
         reader = csv.reader(f)
         data_all = [row for row in reader]
+
+    # find the column indexes
+    column_names = [c.strip() for c in data_all[0]]
+    x_column_indexes = [i for i, name in enumerate(column_names) if name.startswith('x_')]
+    y_column_indexes = [i for i, name in enumerate(column_names) if name.startswith('y_')]
+    assert len(x_column_indexes) == 68
+    assert len(y_column_indexes) == 68
+
+    confidence_column_index = column_names.index('confidence')
+    face_id_column_index = column_names.index('face_id')
+
+    # selecting face with highest confidence
+    face_ids = set([int(row[face_id_column_index]) for row in data_all[1:]])
+    if len(face_ids) > 1:
+        print(f'Warning: more than one face detected in {csv_path}. Selecting face with highest confidence.')
+        avg_confidences = dict()
+        for row in data_all[1:]:
+            face_id = int(row[face_id_column_index])
+            confidence = float(row[confidence_column_index])
+            if face_id not in avg_confidences:
+                avg_confidences[face_id] = []
+            avg_confidences[face_id].append(confidence)
+
+        avg_confidences = {face_id: np.mean(confidences) for face_id, confidences in avg_confidences.items()}
+        best_face_id = max(avg_confidences, key=avg_confidences.get)
+    else:
+        best_face_id = face_ids.pop()
+
     x_list = []
     y_list = []
-    for row_index,row in enumerate(data_all[1:]):
-        frame_num = float(row[0])
-        if int(frame_num)!= row_index+1:
-            return None
-        x_list.append([float(x) for x in row[5:5+68]])
-        y_list.append([float(y) for y in row[5+68:5+68 + 68]])
+    for row_index, row in enumerate(data_all[1:]):
+        face_id = int(row[face_id_column_index])
+        if face_id != best_face_id:
+            continue
+
+        x_list.append([float(row[i]) for i in x_column_indexes])
+        y_list.append([float(row[i]) for i in y_column_indexes])
+
     x_array = np.array(x_list)
     y_array = np.array(y_list)
     landmark_array = np.stack([x_array,y_array],2)

@@ -6,6 +6,8 @@ import cv2
 
 from torch.utils.data import Dataset
 
+from dataset.augmenter import Augmenter
+
 
 def get_data(json_name,augment_num):
     print('start loading data')
@@ -36,11 +38,16 @@ class DINetDataset(Dataset):
         video_clip_num = len(self.data_dic[video_name]['clip_data_list'])
         random_anchor = random.sample(range(video_clip_num), 6)
         source_anchor, reference_anchor_list = random_anchor[0],random_anchor[1:]
+
+        # initialize random state for augmentation
+        augmenter = Augmenter()
+
         ## load source image
         source_image_path_list = self.data_dic[video_name]['clip_data_list'][source_anchor]['frame_path_list']
         source_random_index = random.sample(range(2, 7), 1)[0]
         source_image_data = cv2.imread(source_image_path_list[source_random_index])[:, :, ::-1]
-        source_image_data = cv2.resize(source_image_data, (self.img_w, self.img_h))/ 255.0
+        source_image_data = cv2.resize(source_image_data, (self.img_w, self.img_h)).astype(np.float32) / 255.0
+        source_image_data = augmenter.transform_image(source_image_data)
         source_image_mask = source_image_data.copy()
         source_image_mask[self.radius:self.radius+self.mouth_region_size,self.radius_1_4:self.radius_1_4 +self.mouth_region_size ,:] = 0
 
@@ -54,7 +61,8 @@ class DINetDataset(Dataset):
             reference_random_index = random.sample(range(9), 1)[0]
             reference_frame_path = reference_frame_path_list[reference_random_index]
             reference_frame_data = cv2.imread(reference_frame_path)[:, :, ::-1]
-            reference_frame_data = cv2.resize(reference_frame_data, (self.img_w, self.img_h))/ 255.0
+            reference_frame_data = cv2.resize(reference_frame_data, (self.img_w, self.img_h)).astype(np.float32) / 255.0
+            reference_frame_data = augmenter.transform_image(reference_frame_data)
             reference_frame_data_list.append(reference_frame_data)
         reference_clip_data = np.concatenate(reference_frame_data_list, 2)
 
