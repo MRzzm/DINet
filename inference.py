@@ -76,6 +76,8 @@ if __name__ == '__main__':
     assert ds_feature_padding.shape[0] == len(res_video_frame_path_list_pad) == res_video_landmark_data_pad.shape[0]
     pad_length = ds_feature_padding.shape[0]
 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     ############################################## randomly select 5 reference images ##############################################
     print('selecting five reference images')
     ref_img_list = []
@@ -97,14 +99,14 @@ if __name__ == '__main__':
         ref_img_crop = ref_img_crop / 255.0
         ref_img_list.append(ref_img_crop)
     ref_video_frame = np.concatenate(ref_img_list, 2)
-    ref_img_tensor = torch.from_numpy(ref_video_frame).permute(2, 0, 1).unsqueeze(0).float().cuda()
+    ref_img_tensor = torch.from_numpy(ref_video_frame).permute(2, 0, 1).unsqueeze(0).float().to(device)
 
     ############################################## load pretrained model weight ##############################################
     print('loading pretrained model from: {}'.format(opt.pretrained_clip_DINet_path))
-    model = DINet(opt.source_channel, opt.ref_channel, opt.audio_channel).cuda()
+    model = DINet(opt.source_channel, opt.ref_channel, opt.audio_channel).to(device)
     if not os.path.exists(opt.pretrained_clip_DINet_path):
         raise ('wrong path of pretrained model weight: {}'.format(opt.pretrained_clip_DINet_path))
-    state_dict = torch.load(opt.pretrained_clip_DINet_path)['state_dict']['net_g']
+    state_dict = torch.load(opt.pretrained_clip_DINet_path, map_location=device)['state_dict']['net_g']
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
         name = k[7:]  # remove module.
@@ -140,8 +142,8 @@ if __name__ == '__main__':
         crop_frame_data[opt.mouth_region_size//2:opt.mouth_region_size//2 + opt.mouth_region_size,
                         opt.mouth_region_size//8:opt.mouth_region_size//8 + opt.mouth_region_size, :] = 0
 
-        crop_frame_tensor = torch.from_numpy(crop_frame_data).float().cuda().permute(2, 0, 1).unsqueeze(0)
-        deepspeech_tensor = torch.from_numpy(ds_feature_padding[clip_end_index - 5:clip_end_index, :]).permute(1, 0).unsqueeze(0).float().cuda()
+        crop_frame_tensor = torch.from_numpy(crop_frame_data).float().to(device).permute(2, 0, 1).unsqueeze(0)
+        deepspeech_tensor = torch.from_numpy(ds_feature_padding[clip_end_index - 5:clip_end_index, :]).permute(1, 0).unsqueeze(0).float().to(device)
         with torch.no_grad():
             pre_frame = model(crop_frame_tensor, ref_img_tensor, deepspeech_tensor)
             pre_frame = pre_frame.squeeze(0).permute(1, 2, 0).detach().cpu().numpy() * 255
